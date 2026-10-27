@@ -28,6 +28,9 @@ def main(tau, train_path, eval_path):
     y_pred = clf.predict(x_eval)
     # No need to save predictions
     # Plot data
+
+
+    # 使用 ai 生成的画图代码
     mse = np.mean((y_eval - y_pred)**2)
     print(f"MSE on validation set: {mse}")
 
@@ -75,6 +78,7 @@ class LocallyWeightedLinearRegression(LinearModel):
 
         """
         # *** START CODE HERE ***
+        # 局部加权回归是非参数学习算法，没有全局固定的参数theta
         self.x = x
         self.y = y
         # *** END CODE HERE ***
@@ -92,15 +96,21 @@ class LocallyWeightedLinearRegression(LinearModel):
         m, n = x.shape
         y_pred = np.zeros(m)
 
+        # 对每一个需要预测的数据，根据样本集里的数据算权重
         for i in range(m):
+            # 对第 i 个数据做局部加权回归
             x_eval = x[i]
 
+            # 算权重值
             diff = self.x - x_eval
             dist_sq = np.sum(diff**2, axis=1)
             w_diag = np.exp(-dist_sq / (2*self.tau**2))
             W = np.diag(w_diag)
 
+            # 根据正规方程求解 theta
             theta = np.linalg.inv(self.x.T @ W @ self.x) @ self.x.T @ W @ self.y
+
+            # 输出预测值
             y_pred[i] = x_eval @ theta
 
         return y_pred

@@ -16,6 +16,8 @@ def initial_state():
     """
 
     # *** START CODE HERE ***
+    return []
+    # 难以表示高维（无限维）数据，只用列表，每次遇到新错判数据和对应的修正值就加入
     # *** END CODE HERE ***
 
 
@@ -33,6 +35,15 @@ def predict(state, kernel, x_i):
         Returns the prediction (i.e 0 or 1)
     """
     # *** START CODE HERE ***
+    total_score = 0
+    for i in state:
+        # state 的结构为元组 (x, alpha)
+        # 如果 x_i 附近正例多，总 total_score 就更大
+        # 如果负例多，就更小，
+        # 最后输出sign()，用于预测
+        total_score += i[1] * kernel(i[0], x_i)
+
+    return sign(total_score)
     # *** END CODE HERE ***
 
 
@@ -47,6 +58,17 @@ def update_state(state, kernel, learning_rate, x_i, y_i):
         y_i: A 0 or 1 indicating the label for a single instance
     """
     # *** START CODE HERE ***
+    # 用已有的参数集预测
+    y_pred = predict(state, kernel, x_i)
+
+    error = y_i - y_pred
+
+    # 如果预测错了
+    if error != 0:
+        # 将 x_i 存入 state，变成一个新的中心点
+        # 离中心点越近，就越容易被它的标签影响
+        alpha = learning_rate * error
+        state.append((x_i, alpha))
     # *** END CODE HERE ***
 
 
@@ -78,6 +100,8 @@ def rbf_kernel(a, b, sigma=1):
     """
     distance = (a - b).dot(a - b)
     scaled_distance = -distance / (2 * (sigma) ** 2)
+
+    # 泰勒展开 exp(x) 会产生无穷多项，即将数据映射到了无穷维空间
     return math.exp(scaled_distance)
 
 
@@ -101,7 +125,8 @@ def train_perceptron(kernel_name, kernel, learning_rate):
     for x_i, y_i in zip(train_x, train_y):
         update_state(state, kernel, learning_rate, x_i, y_i)
 
-    test_x, test_y = util.load_csv('../data/ds5_train.csv')
+    # 原文件错载入了训练集
+    test_x, test_y = util.load_csv('../data/ds5_test.csv')
 
     plt.figure(figsize=(12, 8))
     util.plot_contour(lambda a: predict(state, kernel, a))
